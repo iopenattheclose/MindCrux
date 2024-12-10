@@ -19,6 +19,8 @@ import spacy
 from time import time
 import numpy as np
 
+import re
+
 #these include the hyperparameters also
 config = {'min_text_len':30,
           'max_text_len':63,
@@ -54,7 +56,37 @@ def pre_process_data():
     print(f'Text length: {len(pre.text[ind].split())}')
     print(f'Summary length: {len(pre.summary[ind].split())}')
 
+def text_strip(sentence):
+    # Remove non-alphabetic characters (Data Cleaning)
 
+    sentence = re.sub("(\\t)", " ", str(sentence)).lower()
+    sentence = re.sub("(\\r)", " ", str(sentence)).lower()
+    sentence = re.sub("(\\n)", " ", str(sentence)).lower()
+
+    # Remove - if it occurs more than one time consecutively
+    sentence = re.sub("(--+)", " ", str(sentence)).lower()
+
+    # Remove . if it occurs more than one time consecutively
+    sentence = re.sub("(\.\.+)", " ", str(sentence)).lower()
+
+    # Remove the characters - <>()|&©ø"',;?~*!
+    sentence = re.sub(r"[<>()|&©ø\[\]\'\",;?~*!]", " ", str(sentence)).lower()
+
+    # Remove \x9* in text
+    sentence = re.sub(r"(\\x9\d)", " ", str(sentence)).lower()
+
+    # Replace CM# and CHG# to CM_NUM
+    sentence = re.sub("([cC][mM]\d+)|([cC][hH][gG]\d+)", "CM_NUM", str(sentence)).lower()
+
+    # Remove punctuations at the end of a word
+    sentence = re.sub("(\.\s+)", " ", str(sentence)).lower()
+    sentence = re.sub("(\-\s+)", " ", str(sentence)).lower()
+    sentence = re.sub("(\:\s+)", " ", str(sentence)).lower()
+
+    # Remove multiple spaces
+    sentence = re.sub("(\s+)", " ", str(sentence)).lower()
+
+    return sentence
 
 
 if __name__=="__main__":
