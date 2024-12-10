@@ -48,13 +48,7 @@ def pre_process_data():
                 &(df['text'].str.split(" ").str.len()<config['max_text_len']))].reset_index(drop=True)
     print(f'After filtering: {pre.shape}')
 
-    ind = 44
-    print(f'Text: {pre.text[ind]}')
-    print()
-    print(f'Summary: {pre.summary[ind]}')
-    print()
-    print(f'Text length: {len(pre.text[ind].split())}')
-    print(f'Summary length: {len(pre.summary[ind].split())}')
+    return pre
 
 def text_strip(sentence):
     # Remove non-alphabetic characters (Data Cleaning)
@@ -88,6 +82,38 @@ def text_strip(sentence):
 
     return sentence
 
+def getCleanData():
+    pre = pre_process_data()
+    pre['cleaned_text'] = pre['text'].apply(lambda x: text_strip(x))
+    #why is sostok and eostok added despite adding start and end token?
+    #these token are not required on the long text side(encode side)
+    pre['cleaned_summary'] = pre['summary'].apply(lambda x: '_START_ '+ text_strip(x) + ' _END_')
+    pre['cleaned_summary'] = pre['cleaned_summary'].apply(lambda x: 'sostok ' + x + ' eostok')
+
+
+    #remove below filter if required=>adding to restrict size of data
+    post_pre = pre[((pre.cleaned_text.str.split().str.len()<=config['max_text_len']) &
+                    (pre.summary.str.split().str.len()<=(config['max_summary_len']+4)))].copy()
+    post_pre = post_pre.reset_index(drop=True)
+    print(post_pre.shape)
+
+    post_pre = post_pre.drop(['text', 'summary'], axis=1)
+    post_pre = post_pre.rename(columns = {'cleaned_text':'text',
+                                        'cleaned_summary':'summary'})
+    print(post_pre.head())
+
+    return post_pre
+
+def splitData():
+    post_pre = getCleanData()
+    x_train, x_valid, y_train, y_valid = train_test_split(np.array(post_pre["text"]),
+                                            np.array(post_pre["summary"]),
+                                            test_size=0.1,
+                                            random_state=0,
+                                            shuffle=True
+                                           )
+
+    print(x_train.shape, x_valid.shape, y_train.shape, y_valid.shape)
 
 if __name__=="__main__":
-    pre_process_data()
+    splitData()
