@@ -148,9 +148,44 @@ def get_rare_words(text_col, thresh=5):
 
     return cnt, tot_cnt
 
-def tokenize_train_datset():
+def tokenize_train_and_validation_dataset():
     x_train, x_valid, y_train, y_valid = splitData()
     x_train_cnt, x_train_tot_cnt = get_rare_words(text_col=x_train)
 
+    xtext_vectorizer = TextVectorization(output_mode='int', 
+                                    output_sequence_length=config['max_text_len'], 
+                                    max_tokens=x_train_tot_cnt - x_train_cnt)
+
+    # Adapt the vectorizer to the training data
+    xtext_vectorizer.adapt(x_train)
+
+    # Transform training and validation texts into integer sequences
+    x_tr = xtext_vectorizer(x_train)
+    x_val = xtext_vectorizer(x_valid)
+
+    # Size of vocabulary (+1 for padding token)
+    x_voc = len(xtext_vectorizer.get_vocabulary())
+
+    print("Size of vocabulary in X = {}".format(x_voc))
+
+    y_train_cnt, y_train_tot_cnt = get_rare_words(text_col=y_train)
+    
+    ytext_vectorizer = TextVectorization(output_mode='int', 
+                                    output_sequence_length=config['max_text_len'], 
+                                    max_tokens=y_train_tot_cnt - y_train_cnt)
+
+    # Adapt the vectorizer to the val data
+    ytext_vectorizer.adapt(x_train)
+
+    y_tr = ytext_vectorizer(x_train)
+    y_val = ytext_vectorizer(x_valid)
+
+    # Size of vocabulary (+1 for padding token)
+    y_voc = len(ytext_vectorizer.get_vocabulary())
+
+    print("Size of vocabulary in X = {}".format(y_voc))
+
+
+
 if __name__=="__main__":
-    splitData()
+    tokenize_train_and_validation_dataset()
