@@ -185,6 +185,8 @@ def tokenize_train_and_validation_dataset():
 
     print("Size of vocabulary in X = {}".format(y_voc))
 
+    return x_voc,y_voc
+
 
 
 if __name__=="__main__":
