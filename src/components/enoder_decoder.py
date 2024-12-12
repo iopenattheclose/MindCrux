@@ -8,7 +8,7 @@ from data_preprocessing import tokenize_train_and_validation_dataset
 config = {'min_text_len':30,
           'max_text_len':63,
           'max_summary_len':30,
-          'latent_dim' : 300,
+          'latent_dim' : 300, #ht vec,ct vec, it vec, ft vec, ot vec
           'embedding_dim' : 200}
 
 def initialize_encode_architectire():
@@ -19,7 +19,7 @@ def initialize_encode_architectire():
 
     x_voc,y_voc = tokenize_train_and_validation_dataset()
 
-    # Encoder
+    # Encoder input sequence(long text length)
     encoder_inputs = Input(shape=(max_text_len, ))
 
     # Embedding layer
@@ -59,10 +59,16 @@ def initialize_encode_architectire():
         decoder_lstm(dec_emb, initial_state=[state_h, state_c])
 
     # Dense layer
+    #TimeDistributed is used to predict which word out of v is to be predicted at each output of the LSTM return state(time step )
     decoder_dense = TimeDistributed(Dense(y_voc, activation='softmax'))
     decoder_outputs = decoder_dense(decoder_outputs)
 
     # Define the model
     model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
-    model.summary()
+    print(model.summary())
+
+
+
+if __name__=="__main__":
+    initialize_encode_architectire()
