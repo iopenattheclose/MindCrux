@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import nltk
 # nltk.download('all')
+from collections import Counter
 
 from keras.api.layers import Dense, Embedding, Input, InputLayer, RNN, SimpleRNN, LSTM, Bidirectional, TimeDistributed,TextVectorization
 from keras.api.models import Model, Sequential
@@ -114,6 +115,42 @@ def splitData():
                                            )
 
     print(x_train.shape, x_valid.shape, y_train.shape, y_valid.shape)
+
+    return x_train, x_valid, y_train, y_valid
+
+def get_rare_words(text_col, thresh=5):
+    # Convert the text column to a list of strings
+    text_list = list(text_col)
+
+    # Initialize the TextVectorization layer
+    text_vectorizer = tf.keras.layers.TextVectorization(output_mode='int')
+    text_vectorizer.adapt(text_list)
+
+    # Get the vocabulary from the TextVectorization layer
+    vocab = text_vectorizer.get_vocabulary()  # Index-to-word mapping
+
+    # Tokenize the text data
+    tokenized_texts = text_vectorizer(text_list)
+
+    # Flatten the tokenized output and count occurrences of each token
+    token_counts = Counter()
+    for tokens in tokenized_texts:
+        for token in tokens.numpy():
+            if token != 0:  # Ignore padding (0)
+                word = vocab[token]
+                token_counts[word] += 1
+
+    # Count rare words based on the threshold
+    tot_cnt = len(token_counts)
+    cnt = sum(1 for count in token_counts.values() if count < thresh)
+
+    print("% of rare words in vocabulary:", (cnt / tot_cnt) * 100)
+
+    return cnt, tot_cnt
+
+def tokenize_train_datset():
+    x_train, x_valid, y_train, y_valid = splitData()
+    x_train_cnt, x_train_tot_cnt = get_rare_words(text_col=x_train)
 
 if __name__=="__main__":
     splitData()
