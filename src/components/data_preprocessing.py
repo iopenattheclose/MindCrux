@@ -164,7 +164,7 @@ def tokenize_train_and_validation_dataset():
     x_val = xtext_vectorizer(x_valid)
 
     # Size of vocabulary (+1 for padding token)
-    x_voc = len(xtext_vectorizer.get_vocabulary())
+    x_voc = len(xtext_vectorizer.get_vocabulary()) + 1
 
     print("Size of vocabulary in X = {}".format(x_voc))
 
@@ -181,7 +181,7 @@ def tokenize_train_and_validation_dataset():
     y_val = ytext_vectorizer(x_valid)
 
     # Size of vocabulary (+1 for padding token)
-    y_voc = len(ytext_vectorizer.get_vocabulary())
+    y_voc = len(ytext_vectorizer.get_vocabulary()) + 1
 
     print("Size of vocabulary in X = {}".format(y_voc))
 
