@@ -9,17 +9,13 @@ from keras.api.models import Model, Sequential
 from keras.api.callbacks import EarlyStopping, ModelCheckpoint
 from keras.api.preprocessing.sequence import pad_sequences
 import tensorflow as tf
-
 import string
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
-
 from sklearn.model_selection import train_test_split
-
 import spacy
 from time import time
 import numpy as np
-
 import re
 
 #these include the hyperparameters also
@@ -185,7 +181,7 @@ def tokenize_train_and_validation_dataset():
 
     print("Size of vocabulary in X = {}".format(y_voc))
 
-    return x_voc,y_voc
+    return x_voc,y_voc,x_tr,y_tr,x_val,y_val
 
 
 

@@ -2,6 +2,12 @@ from keras.api.layers import Dense, Embedding, Input, InputLayer, RNN, SimpleRNN
 from keras.api.models import Model, Sequential
 from keras.api.callbacks import EarlyStopping, ModelCheckpoint
 from data_preprocessing import tokenize_train_and_validation_dataset
+import tensorflow as tf
+import os
+import sys
+sys.path.append("src")
+from utils import save_object
+import numpy as np
 
 
 #these include the hyperparameters also
@@ -11,13 +17,13 @@ config = {'min_text_len':30,
           'latent_dim' : 300, #ht vec,ct vec, it vec, ft vec, ot vec
           'embedding_dim' : 200}
 
-def initialize_encode_architectire():
+def initialize_encoder_decoder_architecture():
     latent_dim = config['latent_dim']
     embedding_dim = config['embedding_dim']
     max_text_len = config['max_text_len']
     max_summary_len = config['max_summary_len']
 
-    x_voc,y_voc = tokenize_train_and_validation_dataset()
+    x_voc,y_voc,x_tr,y_tr,x_val,y_val = tokenize_train_and_validation_dataset()
 
     # Encoder input sequence(long text length)
     encoder_inputs = Input(shape=(max_text_len, ))
@@ -68,7 +74,35 @@ def initialize_encode_architectire():
 
     print(model.summary())
 
+    return model,np.array(x_tr),np.array(y_tr),np.array(x_val),np.array(y_val)
+
+def train_and_save_model():
+
+    model,x_tr,y_tr,x_val,y_val = initialize_encoder_decoder_architecture()
+    model.compile(optimizer='Adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model_name = "./weights.weights.h5"
+    save_model = ModelCheckpoint(filepath=model_name,
+                                                    save_weights_only=True,
+                                                    save_best_only=True,
+                                                    verbose=1)    
+
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
+
+    save_object(file_path=os.path.join("artifacts","model.pkl"),obj = model)
+
+    history = model.fit(
+    [x_tr, y_tr[:, :-1]],
+    y_tr.reshape(y_tr.shape[0], y_tr.shape[1], 1)[:, 1:],
+    epochs=500,
+    callbacks=[es, save_model],
+    batch_size=1024,
+    validation_data=([x_val, y_val[:, :-1]],
+                     y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]),
+    )
+
+
+
 
 
 if __name__=="__main__":
-    initialize_encode_architectire()
+    train_and_save_model()
