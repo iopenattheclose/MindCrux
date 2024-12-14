@@ -11,8 +11,8 @@ import numpy as np
 
 
 #these include the hyperparameters also
-config = {'min_text_len':30,
-          'max_text_len':63,
+config = {'min_text_len':40,
+          'max_text_len':60,
           'max_summary_len':30,
           'latent_dim' : 300, #ht vec,ct vec, it vec, ft vec, ot vec
           'embedding_dim' : 200}
@@ -78,6 +78,10 @@ def initialize_encoder_decoder_architecture():
 
 def train_and_save_model():
 
+    physical_devices = tf.config.list_physical_devices('GPU')
+    for device in physical_devices:
+        tf.config.experimental.set_memory_growth(device, True)
+
     model,x_tr,y_tr,x_val,y_val = initialize_encoder_decoder_architecture()
     model.compile(optimizer='Adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     model_name = "./weights.weights.h5"
@@ -88,8 +92,10 @@ def train_and_save_model():
 
     es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
 
-    save_object(file_path=os.path.join("artifacts","model.pkl"),obj = model)
+    save_object(file_path=os.path.join("artifacts","model.dill"),obj = model)
 
+    #auto regressive pattern
+    #decoder output is y(t+1)
     history = model.fit(
     [x_tr, y_tr[:, :-1]],
     y_tr.reshape(y_tr.shape[0], y_tr.shape[1], 1)[:, 1:],
@@ -99,9 +105,6 @@ def train_and_save_model():
     validation_data=([x_val, y_val[:, :-1]],
                      y_val.reshape(y_val.shape[0], y_val.shape[1], 1)[:, 1:]),
     )
-
-
-
 
 
 if __name__=="__main__":
