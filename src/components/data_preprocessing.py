@@ -110,8 +110,6 @@ def splitData():
                                             shuffle=True
                                            )
 
-    print(x_train.shape, x_valid.shape, y_train.shape, y_valid.shape)
-
     return x_train, x_valid, y_train, y_valid
 
 def get_rare_words(text_col, thresh=5):
